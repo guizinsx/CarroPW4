@@ -39,28 +39,36 @@ const TabelaCarros = () => {
   };
 
   const handleSaveEdit = async () => {
-    const formData = new URLSearchParams();
-    formData.append('nome', nome);
-    formData.append('fabricante', fabricante);
-    formData.append('ano', parseInt(ano));
-    formData.append('preco', parseInt(preco));
-    formData.append('potencia', potencia);
+    // Verifica se pelo menos um campo foi alterado
+    if (nome !== carroSelecionado.nome || ano !== carroSelecionado.ano || potencia !== carroSelecionado.potencia || preco !== carroSelecionado.preco || fabricante !== carroSelecionado.fabricante) {
+      // Se algum campo foi alterado, então envia a solicitação PUT
+      const formData = new URLSearchParams();
+      formData.append('id', carroSelecionado.id);
+      formData.append('nome', nome);
+      formData.append('ano', parseInt(ano));
+      formData.append('potencia', potencia);
+      formData.append('preco', parseInt(preco));
+      formData.append('fabricante', fabricante);
   
-    try {
-      const response = await fetch(`https://ifsp.ddns.net/webservices/carro/carro/${carroSelecionado.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: formData
-      });
+      try {
+        const response = await fetch(`https://ifsp.ddns.net/webservices/carro/carro/${carroSelecionado.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: formData
+        });
   
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        if (!response.ok) {
+          throw new Error(`Erro ${response.status}: ${response.statusText}`);
+        }
+  
+        const data = await response.json();
+        console.log(data);
+      } catch (error) {
+        console.error('Erro ao atualizar os dados:', error);
       }
-  
-      const data = await response.json();
-      console.log(data);
-    } catch (error) {
-      console.error('Erro ao atualizar os dados:', error);
+    } else {
+      // Se nenhum campo foi alterado, exiba uma mensagem ou realize outra ação apropriada
+      console.log("Nenhum campo foi alterado. A solicitação de atualização não será enviada.");
     }
   
     // Limpa o estado do carro selecionado e dos campos do formulário
@@ -112,6 +120,24 @@ const TabelaCarros = () => {
   const handleCancelEdit = () => {
     // Limpa o estado do carro selecionado para cancelar a edição
     setCarroSelecionado(null);
+  };
+
+  const handleDelete = async (carroId) => {
+    try {
+      const response = await fetch(`https://ifsp.ddns.net/webservices/carro/carro/${carroId}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ${response.status}: ${response.statusText}`);
+      }
+
+      // Atualize a lista de carros após a exclusão bem-sucedida
+      const updatedCarros = carros.filter(carro => carro.id !== carroId);
+      setCarros(updatedCarros);
+    } catch (error) {
+      console.error('Erro ao excluir o carro:', error);
+    }
   };
 
   return (
@@ -168,9 +194,13 @@ const TabelaCarros = () => {
                     <button onClick={handleCancelEdit}>Cancelar</button>
                   </>
                 ) : (
-                  <button onClick={() => handleEdit(carro)}>Editar</button>
+                  <>
+                    <button onClick={() => handleEdit(carro)}>Editar</button>
+                    <button onClick={() => handleDelete(carro.id)}>Excluir</button>
+                  </>
                 )}
               </td>
+              
             </tr>
           ))}
         </tbody>
