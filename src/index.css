@@ -36,3 +36,14 @@ a:hover {
   text-decoration: underline;
   color: #0056b3;
 }
+
+.formgroup{
+  display: flex;
+  flex-direction: column;
+  padding-right: 3px;
+
+}
+form{
+  display: flex;
+  
+}
