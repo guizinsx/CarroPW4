@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 
 const TabelaCarros = () => {
   const [carros, setCarros] = useState([]);
-  const [carroSelecionado, setCarroSelecionado] = useState(null); // Estado para armazenar o carro selecionado para edição
+  const [carroSelecionado, setCarroSelecionado] = useState(null);
   
   const [nome, setNome] = useState(null);
   const [ano, setAno] = useState(null);
@@ -10,26 +10,26 @@ const TabelaCarros = () => {
   const [preco, setPreco] = useState(null);
   const [fabricante, setFabricante] = useState(null);
 
+  const [exibirBotaoCadastrar, setExibirBotaoCadastrar] = useState(true);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('https://ifsp.ddns.net/webservices/carro/carro');
-        const data = await response.json();
-        setCarros(data);
-      } catch (error) {
-        console.error('Erro ao buscar os dados:', error);
-      }
-    };
-
     fetchData();
   }, []);
 
+  const fetchData = async () => {
+    try {
+      const response = await fetch('https://ifsp.ddns.net/webservices/carro/carro');
+      const data = await response.json();
+      setCarros(data);
+    } catch (error) {
+      console.error('Erro ao buscar os dados:', error);
+    }
+  };
+
   const handleEdit = (carro) => {
     if (carro) {
-      // Define o carro selecionado para edição
+      setExibirBotaoCadastrar(false);
       setCarroSelecionado(carro);
-      // Preenche os campos do formulário com os dados do carro selecionado
       setNome(carro.nome || '');
       setAno(carro.ano ? carro.ano.toString() : '');
       setPotencia(carro.potencia ? carro.potencia.toString() : '');
@@ -39,9 +39,7 @@ const TabelaCarros = () => {
   };
 
   const handleSaveEdit = async () => {
-    // Verifica se pelo menos um campo foi alterado
     if (nome !== carroSelecionado.nome || ano !== carroSelecionado.ano || potencia !== carroSelecionado.potencia || preco !== carroSelecionado.preco || fabricante !== carroSelecionado.fabricante) {
-      // Se algum campo foi alterado, então envia a solicitação PUT
       const formData = new URLSearchParams();
       formData.append('id', carroSelecionado.id);
       formData.append('nome', nome);
@@ -63,15 +61,15 @@ const TabelaCarros = () => {
   
         const data = await response.json();
         console.log(data);
+        fetchData();
       } catch (error) {
         console.error('Erro ao atualizar os dados:', error);
       }
     } else {
-      // Se nenhum campo foi alterado, exiba uma mensagem ou realize outra ação apropriada
-      console.log("Nenhum campo foi alterado. A solicitação de atualização não será enviada.");
+      console.log("Nenhum campo foi alterado, por isso a solicitacao nao sera enviada");
     }
-  
-    // Limpa o estado do carro selecionado e dos campos do formulário
+    
+    setExibirBotaoCadastrar(true);
     setCarroSelecionado(null);
     setNome("");
     setAno("");
@@ -95,19 +93,11 @@ const TabelaCarros = () => {
       const response = await fetch('https://ifsp.ddns.net/webservices/carro/carro',{
         method:"POST", 
         headers:{"Content-Type":"application/x-www-form-urlencoded"},
-        // body:{
-        //   id: 100,
-        //   nome: nome,
-        //   ano: parseInt(ano),
-        //   potencia: potencia,
-        //   preco: parseInt(preco),
-        //   fabricante: fabricante
-        // }
         body:formData
-        //body:JSON.stringify(request)
       });
       const data = await response.json();
       console.log(data)
+      fetchData();
     } catch (error) {
       console.error('Erro ao buscar os dados:', error);
     }
@@ -118,8 +108,8 @@ const TabelaCarros = () => {
   };
 
   const handleCancelEdit = () => {
-    // Limpa o estado do carro selecionado para cancelar a edição
     setCarroSelecionado(null);
+    setExibirBotaoCadastrar(true);
   };
 
   const handleDelete = async (carroId) => {
@@ -132,7 +122,6 @@ const TabelaCarros = () => {
         throw new Error(`Erro ${response.status}: ${response.statusText}`);
       }
 
-      // Atualize a lista de carros após a exclusão bem-sucedida
       const updatedCarros = carros.filter(carro => carro.id !== carroId);
       setCarros(updatedCarros);
     } catch (error) {
@@ -163,7 +152,7 @@ const TabelaCarros = () => {
           <label htmlFor="fabricante">fabricante</label>
           <input type="text" name="fabricante" value={fabricante || ''} onChange={(e)=>setFabricante(e.target.value)}></input>
         </div>
-        <button>cadastrar</button>
+        <button className={exibirBotaoCadastrar?"exibirBotao" : "ocultarBotao"}>cadastrar</button>
       </form>
       <h1>Tabela de Carros</h1>
       <table>

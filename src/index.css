@@ -47,3 +47,11 @@ form{
   display: flex;
   
 }
+
+.exibirBotao{
+  display: block;
+}
+
+.ocultarBotao{
+  display: none;
+}
